@@ -1,0 +1,36 @@
+import cv
+
+cv.NamedWindow("w1", cv.CV_WINDOW_AUTOSIZE)
+for i in range(3):
+  capture = cv.CaptureFromCAM(i)
+	if capture: break
+
+
+bg = cv.QueryFrame(capture)
+bgray = cv.CreateImage((bg.width,bg.height),8,1)
+cv.CvtColor(bg,bgray,cv.CV_BGR2GRAY)
+maks = cv.CreateImage((bg.width, bg.height), cv.IPL_DEPTH_8U, 1)
+c = cv.WaitKey(10)
+
+def repeat():
+
+	frame = cv.QueryFrame(capture)
+	grey=cv.CreateImage((bg.width,bg.height),8,1)
+	cv.CvtColor(frame,grey,cv.CV_BGR2GRAY)	
+	'''cv.Cmp(grey,bgray, maks, cv.CV_CMP_EQ)
+#	cv.CmpS(grey, 100, maks, cv.CV_CMP_GT)
+	cv.Set(frame, [0,0,0], mask=maks)
+	new = grey+grey-bgray-bgray'''
+	dst_16s2 = cv.CreateImage(cv.GetSize(grey), cv.IPL_DEPTH_16S, 1)
+	cv.Laplace(grey, dst_16s2,3)
+	cv.Convert(dst_16s2,grey)
+	cv.Dilate(grey,grey,None,1)
+	cv.ShowImage("w1", grey)
+	c = cv.WaitKey(10)
+	
+	
+
+
+
+while True:
+	repeat()
