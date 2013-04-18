@@ -1,12 +1,23 @@
 import alsaaudio
+import sys
 
 def controlvolume(keyboard):
-    m= alsaaudio.Mixer()
-    m.setvolume(50)
-    vol= m.getvolume()
+    if keyboard== 'h':
+        m= alsaaudio.Mixer()
+        m.setvolume(50)
+        vol= m.getvolume()
+    elif keyboard== 'j':
+        m= alsaaudio.Mixer()
+        m.setvolume(+5)
+        vol= m.getvolume()
+    elif keyboard== 'g':
+        m= alsaaudio.Mixer()
+        m.setvolume(+5)
+        vol= m.getvolume()
         
 def main(argv):
-    controlvolume(keyboard=sys.argv[1])
+    controlvolume(argv)
+    
 
 if __name__=="__main__":
-    main(sys.argv[:1])
+    main(sys.argv[1:2])
