@@ -1,19 +1,23 @@
 from SimpleCV import * #import SimpleCV
-
 cam = Camera()
 prev = cam.getImage() #previous camera image
 size = prev.size() #print size of previous image
 print(size)
 while True:
-  cropped = prev  #makes a red box for user to interface with
-	cropped=cropped.getSkintoneMask(0) # make skin white, background black
-	cropped=cropped.erode(6) #fuzzy
-	cropped=cropped.dilate(3) #fuzzy
-	cropped.dl().rectangle((400,0), (240,480), Color.RED) #GUI
-	blobs = cropped.findBlobsFromMask(cropped) # of the fuzzy picture, make blobs
-	blobs.show() #show blobs
-	current = cam.getImage()
-	fs = current.findMotion(prev, method="LK")
-	if fs: #if there's motion
-		print "motion found"
-	prev = current
+	#import pdb
+	#pdb.set_trace()
+	new = prev  #makes a red box for user to interface with
+	new=new.getSkintoneMask(0) # make skin white, background black
+	new=new.erode(6) #image processing 1
+	new=new.dilate(3) #image processing 2
+	blobs = new.findBlobsFromMask(new) # create green outlined blobs GUI layer
+	new.dl().rectangle((400,0), (240,480), Color.RED) #add GUI layer
+	cropped = new.crop(400,0,240,480) #crop what's in GUI box
+	newblobs = cropped.findBlobs()
+	print(newblobs)
+	if newblobs:
+		print(newblobs.coordinates)
+		cropped.show() #display what's in box
+	#blobs.show() #show blobs
+	current = cam.getImage() #get new image
+	prev = current #assign variable to reset loop
