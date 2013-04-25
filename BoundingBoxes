@@ -96,38 +96,48 @@ def repeat():
 
     #creates contours on greyscale image
     storage = cv.CreateMemStorage(0)
-    cframe = cv.CreateImage(cv.GetSize(grey), 8, 3)
+    cframe = cv.CreateImage(cv.GetSize(grey), 8, 1)
+    cv.Set(cframe,0)
     contours = cv.FindContours (grey, storage, cv.CV_RETR_TREE , cv.CV_CHAIN_APPROX_SIMPLE)
 
 
-    #mx = 0
-    best = contours
+    mx = 0
+    best = (0,0)
+    maxcont = contours
 
     #if contours: print(list(contours))
+
 
     #goes through all contours and finds bounding box
     while contours:
         bound_rect = cv.BoundingRect(list(contours))
-        contours = contours.h_next()
 
         #if contours: print(list(contours))
-        '''if bound_rect[3]*bound_rect[2] > mx:
+        if bound_rect[3]*bound_rect[2] > mx:
             mx = bound_rect[3]*bound_rect[2]
-            best = contours.h_prev()'''
+            best = bound_rect[0]+bound_rect[2]*.5 , bound_rect[1]+bound_rect[3]*.5
+            maxcont = contours
+    
+        contours = contours.h_next()
         
         #draws rectangle using bounding box coordinates
         cv.Rectangle(grey,(bound_rect[0],bound_rect[1]),(bound_rect[0]+bound_rect[2],bound_rect[1]+bound_rect[3]),255)
 
     #draws contours
-    cv.DrawContours(cframe, best, 255, 127, -1 )
+    cv.DrawContours(cframe, maxcont, 255, 127, 0)
+    bound_rect = cv.BoundingRect(list(maxcont))
+    cv.Rectangle(cframe,(bound_rect[0],bound_rect[1]),(bound_rect[0]+bound_rect[2],bound_rect[1]+bound_rect[3]),255)
 
+    #draws center of box
+    cv.Circle(cframe,(int(best[0]),int(best[1])),10,255,-1)
+    
     '''momentz = cv.Moments(contours)
     hat = cv.GetCentralMoment(momentz,1,1)
     print(hat)
     #print(cv.CheckContourConvexity(contours))'''
 
     #displays image with contours
-    cv.ShowImage("w1",grey)
+    cv.ShowImage("w1",cframe)
 
     #optional pause for 5 seconds - replace with 5 if doing continuous stream
     c = cv.WaitKey(5)
