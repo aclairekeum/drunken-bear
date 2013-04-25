@@ -1,0 +1,140 @@
+import cv
+
+#Creates two windows named w1 and w2
+cv.NamedWindow("w1", cv.CV_WINDOW_AUTOSIZE)
+cv.NamedWindow("w2", cv.CV_WINDOW_AUTOSIZE)
+
+#goes through all potential cameras to see which one works
+for i in range(3):
+    capture = cv.CaptureFromCAM(i)
+    if capture: break
+
+#takes initial picture of background
+bg = cv.QueryFrame(capture)
+
+#creates white image
+black = cv.CreateImage(cv.GetSize(bg),8,1)
+cv.Set(black,255);
+
+#creates temporary variables
+sframe = cv.CreateImage(cv.GetSize(bg),8,3)
+dog = cv.CreateImage(cv.GetSize(bg),8,1)
+grey=cv.CreateImage(cv.GetSize(bg),8,1)
+
+'''bgray = cv.CreateImage((bg.width,bg.height),8,1)
+cv.CvtColor(bg,bgray,cv.CV_BGR2GRAY)
+maks = cv.CreateImage((bg.width, bg.height), cv.IPL_DEPTH_8U, 1)
+c = cv.WaitKey(10)'''
+
+def skin(img):
+    #determines range of skin colors
+    COLOR_MIN = cv.Scalar(0, 10, 60)
+    COLOR_MAX = cv.Scalar(20, 150, 255)
+
+    #blurs image
+    cv.Smooth(img, img, cv.CV_GAUSSIAN, 9, 9)
+
+    #makes hsv image and converts input to hsv
+    hsv = cv.CreateImage(cv.GetSize(img), 8, 3)
+    cv.CvtColor(img, hsv, cv.CV_BGR2HSV)
+
+    #makes a black/white mask of skintone regions of the original image
+    color_mask = cv.CreateImage(cv.GetSize(hsv), 8, 1)
+    cv.InRangeS(hsv, COLOR_MIN, COLOR_MAX, color_mask)
+
+
+    '''storage = cv.CreateMemStorage(0)
+    frame = cv.CreateImage(cv.GetSize(img), 8, 3)
+    contours = cv.FindContours (color_mask, storage, cv.CV_RETR_TREE , cv.CV_CHAIN_APPROX_SIMPLE)
+    cv.DrawContours(frame, contours, cv.RGB(255, 255, 255), cv.RGB(0, 255, 0), 1 )'''
+
+    return color_mask
+
+def repeat():
+
+    #captures input frame
+    frame = cv.QueryFrame(capture)
+
+    #creates copy of input frame to work with
+    cv.Copy(frame,sframe)
+    cv.Flip(sframe,sframe,1)
+
+    #makes mask of skintones
+    dog = skin(sframe)
+
+    #inverts skintone mask to all non-skin areas
+    cv.ConvertScale( dog, dog, -1, 255)
+
+    #makes greyscale copy of frame
+    cv.CvtColor(sframe,grey,cv.CV_BGR2GRAY)
+
+    #replaces nonskin areas with white
+    cv.Add(grey,black, grey,dog)
+
+
+    '''cv.Cmp(grey,bgray, maks, cv.CV_CMP_EQ)
+#   cv.CmpS(grey, 100, maks, cv.CV_CMP_GT)
+    cv.Set(frame, [0,0,0], mask=maks)
+    new = grey+grey-bgray-bgray'''
+
+    #implements laplacian edge detection on greyscale image
+    dst_16s2 = cv.CreateImage(cv.GetSize(bg), cv.IPL_DEPTH_16S, 1)
+    cv.Laplace(grey, dst_16s2,5)
+    cv.Convert(dst_16s2,grey)
+
+#    cv.Dilate(grey,grey,None,1)
+    #clone=cv.CloneImage(grey)
+    #contours=cv.FindContours(clone, storage, cv.CV_RETR_LIST, cv.CV_CHAIN_APPROX_SIMPLE, (0, 0))
+
+#    cv.Smooth(grey,grey,cv.CV_GAUSSIAN,9)
+
+    #creates a threshold to binarize the image
+    cv.Threshold(grey,grey,75,255,cv.CV_THRESH_BINARY)
+
+    #displays uncontoured greyscale image
+    cv.ShowImage("w2",grey)
+
+    #creates contours on greyscale image
+    storage = cv.CreateMemStorage(0)
+    cframe = cv.CreateImage(cv.GetSize(grey), 8, 3)
+    contours = cv.FindContours (grey, storage, cv.CV_RETR_TREE , cv.CV_CHAIN_APPROX_SIMPLE)
+
+
+    #mx = 0
+    best = contours
+
+    #if contours: print(list(contours))
+
+    #goes through all contours and finds bounding box
+    while contours:
+        bound_rect = cv.BoundingRect(list(contours))
+        contours = contours.h_next()
+
+        #if contours: print(list(contours))
+        '''if bound_rect[3]*bound_rect[2] > mx:
+            mx = bound_rect[3]*bound_rect[2]
+            best = contours.h_prev()'''
+        
+        #draws rectangle using bounding box coordinates
+        cv.Rectangle(grey,(bound_rect[0],bound_rect[1]),(bound_rect[0]+bound_rect[2],bound_rect[1]+bound_rect[3]),255)
+
+    #draws contours
+    cv.DrawContours(cframe, best, 255, 127, -1 )
+
+    '''momentz = cv.Moments(contours)
+    hat = cv.GetCentralMoment(momentz,1,1)
+    print(hat)
+    #print(cv.CheckContourConvexity(contours))'''
+
+    #displays image with contours
+    cv.ShowImage("w1",grey)
+
+    #optional pause for 5 seconds - replace with 5 if doing continuous stream
+    c = cv.WaitKey(5)
+
+#uncomment for continuous video
+while True:
+    repeat()
+
+#uncomment for single frame
+#repeat()
