@@ -208,6 +208,8 @@ def repeat(begin,unmute,last):
 #uncomment for continuous video
 while True:
     begin,unmute,last = repeat(begin,unmute,last)
+     if cv.WaitKey(10)==27:
+        break
 
 #uncomment for single frame
 #begin,unmute,last=repeat(begin,unmute,last)
