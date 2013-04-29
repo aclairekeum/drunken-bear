@@ -5,6 +5,15 @@ import sys
 import time
 
 
+#Systemname True= Linux False= Mac
+systemname= os.system('uname -a')
+sysname= True
+if 'Mac' in systemname:
+    sysname= False
+else: 
+    sysname= True
+
+
 #Creates two windows named w1 and w2
 cv.NamedWindow("w1", cv.CV_WINDOW_AUTOSIZE)
 cv.NamedWindow("w2", cv.CV_WINDOW_AUTOSIZE)
@@ -171,20 +180,28 @@ def repeat(begin,unmute,last):
         else:
             
             #sets volume to new volume, or 0 if muted
-            os.system('amixer set Master %s' % (unmute*(100-best[1]/4.8))) 
-            
+            #in Linux
+            if sysname= True:   
+                os.system('amixer set Master %s' % (unmute*(100-best[1]/4.8))) 
+            #in Mac
+            else:
+                os.system('osascript -e 'set volume output volume %s' %(unmute*(100-best[1]/4.8)))
             #if 3 seconds have passed, stops timer and switches mute status
-            if time.time()-begin > 3:
-                unmute = 1-unmute
-                begin = 0
+                if time.time()-begin > 3:
+                    unmute = 1-unmute
+                    begin = 0
 
     #stops timer and sets volume to new, if unmuted
-    else:
-        begin = 0
-        os.system('amixer set Master %s' % (unmute*(100-best[1]/4.8)))
-    
-    #returns timer start, mute status, and previous hand position
-    return(begin,unmute,best)
+        else:
+            begin = 0
+            #in Linux
+            if sysname= True:
+                os.system('amixer set Master %s' % (unmute*(100-best[1]/4.8)))
+            #in Mac
+            else:
+                os.system('osascript -e 'set volume output volume %s' %(unmute*(100-best[1]/4.8)))
+            #returns timer start, mute status, and previous hand position
+            return(begin,unmute,best)
 
 #uncomment for continuous video
 while True:
