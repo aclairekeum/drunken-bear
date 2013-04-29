@@ -3,10 +3,12 @@ import cv
 import os
 import sys
 import time
+from subprocess import Popen, PIPE
 
 
 #Systemname True= Linux False= Mac
-systemname= os.system('uname -a')
+stdout = Popen('uname -a', shell=True,stdout=PIPE).stdout
+systemname= stdout.read();
 sysname= True
 if 'Mac' in systemname:
     sysname= False
@@ -181,27 +183,27 @@ def repeat(begin,unmute,last):
             
             #sets volume to new volume, or 0 if muted
             #in Linux
-            if sysname= True:   
+            if sysname== True:   
                 os.system('amixer set Master %s' % (unmute*(100-best[1]/4.8))) 
             #in Mac
             else:
-                os.system('osascript -e 'set volume output volume %s' %(unmute*(100-best[1]/4.8)))
-            #if 3 seconds have passed, stops timer and switches mute status
+                os.system('osascript -e \'set volume output volume %s\'' %(unmute*(100-best[1]/4.8)))
+                #if 3 seconds have passed, stops timer and switches mute status
                 if time.time()-begin > 3:
                     unmute = 1-unmute
                     begin = 0
 
     #stops timer and sets volume to new, if unmuted
+    else:
+        begin = 0
+        #in Linux
+        if sysname== True:
+            os.system('amixer set Master %s' % (unmute*(100-best[1]/4.8)))
+        #in Mac
         else:
-            begin = 0
-            #in Linux
-            if sysname= True:
-                os.system('amixer set Master %s' % (unmute*(100-best[1]/4.8)))
-            #in Mac
-            else:
-                os.system('osascript -e 'set volume output volume %s' %(unmute*(100-best[1]/4.8)))
-            #returns timer start, mute status, and previous hand position
-            return(begin,unmute,best)
+            os.system('osascript -e \'set volume output volume %s\'' %(unmute*(100-best[1]/4.8)))
+    #returns timer start, mute status, and previous hand position
+    return(begin,unmute,best)
 
 #uncomment for continuous video
 while True:
